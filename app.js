@@ -1,5 +1,5 @@
 const config = require('./config')
-const { Client, GatewayIntentBits } = require('discord.js')
+const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js')
 const EmbedViews = require('./embeds')
 const client = new Client({
     intents: [
@@ -26,7 +26,8 @@ client.on('messageCreate', async msg => {
             const ContentFilter = username.split(' ')[1]
 
             if (username === '봇 사용법') {
-                EmbedSendTemplate(EmbedViews.help)
+                const HelpCommand = EmbedViews.helper()
+                EmbedSendTemplate(HelpCommand)
             }
             else if (ContentFilter === '전적' || ContentFilter === 'wjswjr') {
                 msg.channel.send(`*계 산 중*`)
@@ -43,10 +44,12 @@ client.on('messageCreate', async msg => {
             }
         }
     } catch (e) {
+        const NotFoundError = EmbedViews.NotFoundError()
+        const ServerError = EmbedViews.ServerError()
         if (e.response) {
-            if (e.response.data.status.status_code === 404) EmbedSendTemplate(EmbedViews.NotFoundError)
+            if (e.response.data.status.status_code === 404) msg.channel.send({embeds : [NotFoundError]})
         }
-        else EmbedSendTemplate(EmbedViews.ServerError)
+        else msg.channel.send({embeds : [ServerError]})
     }
 })
 
