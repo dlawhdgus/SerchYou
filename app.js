@@ -1,5 +1,5 @@
 const config = require('./config')
-const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js')
+const { Client, GatewayIntentBits } = require('discord.js')
 const EmbedViews = require('./embeds')
 const client = new Client({
     intents: [
@@ -24,7 +24,6 @@ client.on('messageCreate', async msg => {
         if (CommandFilter) {
             const username = content.split('!')[1]
             const ContentFilter = username.split(' ')[1]
-
             if (username === '봇 사용법') {
                 const HelpCommand = EmbedViews.helper()
                 EmbedSendTemplate(HelpCommand)
@@ -38,18 +37,21 @@ client.on('messageCreate', async msg => {
                 msg.channel.send(`*계 산 중*`)
                 const PlayerDiffEmbed = await EmbedViews.DiffUsers(username)
                 EmbedSendTemplate(PlayerDiffEmbed)
-            } else {
+            } else if (ContentFilter === undefined) {
                 const UserProfile = await EmbedViews.UserProfile(username)
                 EmbedSendTemplate(UserProfile)
+            } else {
+                const champions = await EmbedViews.ChampionsLevel(username)
+                EmbedSendTemplate(champions)
             }
         }
     } catch (e) {
         const NotFoundError = EmbedViews.NotFoundError()
         const ServerError = EmbedViews.ServerError()
         if (e.response) {
-            if (e.response.data.status.status_code === 404) msg.channel.send({embeds : [NotFoundError]})
+            if (e.response.data.status.status_code === 404) msg.channel.send({ embeds: [NotFoundError] })
         }
-        else msg.channel.send({embeds : [ServerError]})
+        else msg.channel.send({ embeds: [ServerError] })
     }
 })
 

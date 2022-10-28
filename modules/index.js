@@ -1,7 +1,7 @@
 const config = require('../config.json')
 const axios = require('axios')
 
-module.exports.GetPuuid = async (username) => {
+module.exports.GetUserData = async (username) => {
     try {
         const useruri = `https://kr.api.riotgames.com/lol/summoner/v4/summoners/by-name/${username}?api_key=${config.API_CONNECT_KEY}`
         const puuid = await axios.get(useruri)
@@ -51,10 +51,26 @@ module.exports.GetMatchData = async (MatchId, i) => {
     }
 }
 
+module.exports.GetUserChampionsLevelData = async (encrptedSummonerId, ChampID) => {
+    try {
+        const ChampionLevelUri = `https://kr.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/${encrptedSummonerId}/by-champion/${ChampID}?api_key=${config.API_CONNECT_KEY}`
+        const ChampionsLevelData = await axios.get(ChampionLevelUri)
+        if (ChampionsLevelData) return ChampionsLevelData
+    } catch (e) {
+        return
+    }
+}
+
+module.exports.ChampionsData = async () => {
+    const ChampionDataUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/data/ko_KR/champion.json`
+    const ChampionData = axios.get(ChampionDataUri)
+    return ChampionData
+}
+
 module.exports.UserDataTemplate = async (username) => {
     try {
         const Gamesusername = username.split(' ')[0]
-        const puuidResponse = await this.GetPuuid(Gamesusername)
+        const puuidResponse = await this.GetUserData(Gamesusername)
         const NormalMatchIds = await this.GetNormalMatchId(puuidResponse.puuid)
         const RankedMatchIds = await this.GetRankedMatchId(puuidResponse.puuid)
 
@@ -128,8 +144,8 @@ module.exports.UserDataTemplate = async (username) => {
                 }
             }
 
+            if (Kda[i] === 'Infinity') Kda[i] = 'Perfect'
         }
-
         const user = {
             username: puuidResponse.name,
             Win: Win,
@@ -184,3 +200,41 @@ module.exports.DiffPlayers = async (player1Username, player2Username) => {
 
     return Players
 }
+
+module.exports.UserChampionsLevel = async (username) => {
+    try {
+        const GameUsername = username.split(' ')[0]
+        const championName = username.split(' ')[1]
+        const UserData = await this.GetUserData(GameUsername)
+        const SummonerId = UserData.id
+        const ChampionData = await this.ChampionsData()
+        const championInfo = ChampionData.data.data
+        const ChampID = []
+        const ChampName = []
+        for (let i = 0; i < Object.keys(championInfo).length; i++) {
+            if (Object.values(Object.values(championInfo))[i].name === championName) {
+                ChampName[0] = Object.values(Object.values(championInfo))[i].id
+                ChampID[0] = Object.values(Object.values(championInfo))[i].key
+            }
+        }
+        const ChampionsLevelData = await this.GetUserChampionsLevelData(SummonerId, ChampID)
+        if (ChampionsLevelData) {
+            const championDataALL = ChampionsLevelData.data
+            const championData = {
+                name: ChampName[0],
+                champKoreanName: championName,
+                level: championDataALL.championLevel,
+                point: championDataALL.championPoints
+            }
+            return championData
+        } else {
+            const championData = {
+                name: ChampName[0],
+                champKoreanName: championName
+            }
+            return championData
+        }
+    } catch (e) {
+        throw e
+    }
+}   
