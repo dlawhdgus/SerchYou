@@ -12,6 +12,8 @@ module.exports.helper = () => {
         *사용자의 최근 10판 전적을 보여줍니다.*
         ${Discord.bold('3. !닉네임 vs 닉네임')}
         *두 사용자의 최근 10판의 승률과 Kda를 보여줍니다.*
+        ${Discord.bold('4. !닉네임 챔피언이름')}
+        *사용자에대한 챔피언의 숙련도를 보여줍니다.*
 
 
         닉네임에 공백 X
@@ -56,16 +58,14 @@ module.exports.DiffUsers = async (username) => {
 }
 
 module.exports.UserProfile = async (username) => {
-    const puuidResponse = await GetApiData.GetPuuid(username)
-    const UserData = puuidResponse
-    const RankData = await GetApiData.GetRankData(UserData.id)
-    const IconId = UserData.profileIconId
+    const puuidResponse = await GetApiData.GetUserData(username)
+    const RankData = await GetApiData.GetRankData(puuidResponse.id)
+    const IconId = puuidResponse.profileIconId
     const IconUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/profileicon/${IconId}.png`
     const level = puuidResponse.summonerLevel
-
-    if (isEmptyArr(RankData.data[0])) {
+    if (!(RankData.data[0]) || !((RankData.data[0].queueType) === 'RANKED_SOLO_5x5')) {
         const UserProfileEmbed = new EmbedBuilder()
-            .setTitle(UserData.name)
+            .setTitle(puuidResponse.name)
             .setThumbnail(IconUri)
             .setDescription(`Level : ${level}
                         랭크 정보가 없습니다.`)
@@ -79,7 +79,7 @@ module.exports.UserProfile = async (username) => {
         const losses = RankData.data[0].losses
         const games = Number(wins) + Number(losses)
         const UserProfileEmbed = new EmbedBuilder()
-            .setTitle(UserData.name)
+            .setTitle(puuidResponse.name)
             .setThumbnail(IconUri)
             .setDescription(`Level : ${level}
                             개인/2인 랭크
@@ -89,12 +89,6 @@ module.exports.UserProfile = async (username) => {
 
         return UserProfileEmbed
     }
-
-    function isEmptyArr(arr) {
-        if (Array.isArray(arr) && arr.length === 0) return true
-        else return false
-    }
-
 }
 
 module.exports.RecentGames = async (username) => {
@@ -116,4 +110,40 @@ module.exports.RecentGames = async (username) => {
             `)
         .setColor(0xFF00FF)
     return UserGames
+}
+
+module.exports.ChampionsLevel = async (username) => {
+    const summonertotalName = username.split('!')[0]
+    const summonerName = summonertotalName.split(' ')[0]
+
+    const ChampionData = await GetApiData.UserChampionsLevel(username)
+    const puuidResponse = await GetApiData.GetUserData(summonerName)
+    const name = ChampionData.champKoreanName
+    const Gameusername = puuidResponse.name
+
+    const ChampionIconUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/champion/${ChampionData.name}.png`
+    const UserIconUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/profileicon/${puuidResponse.profileIconId}.png`
+    if (ChampionData.level) {
+        const level = ChampionData.level
+        const point = ChampionData.point
+
+        const ChampionsLevelEmbed = new EmbedBuilder()
+            .setAuthor({ name: Gameusername, iconURL: UserIconUri })
+            .setTitle(name)
+            .setThumbnail(ChampionIconUri)
+            .addFields(
+                { name: 'level', value: `${String(level)}렙`, inline: true },
+                { name: 'point', value: `${String(point)}점`, inline: true }
+            )
+
+        return ChampionsLevelEmbed
+    } else {
+        const ChampionsLevelEmbed = new EmbedBuilder()
+            .setAuthor({ name: Gameusername, iconURL: UserIconUri })
+            .setTitle(name)
+            .setThumbnail(ChampionIconUri)
+            .setDescription('챔피언 정보가 없습니다.')
+
+        return ChampionsLevelEmbed
+    }
 }
