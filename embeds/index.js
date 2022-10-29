@@ -118,11 +118,11 @@ module.exports.ChampionsLevel = async (username) => {
 
     const ChampionData = await GetApiData.UserChampionsLevel(username)
     const puuidResponse = await GetApiData.GetUserData(summonerName)
-    const name = ChampionData.champKoreanName
+    const name = ChampionData.name
     const Gameusername = puuidResponse.name
-
-    const ChampionIconUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/champion/${ChampionData.name}.png`
+    const ChampionIconUri = ChampionData.ChampIconUri
     const UserIconUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/profileicon/${puuidResponse.profileIconId}.png`
+    
     if (ChampionData.level) {
         const level = ChampionData.level
         const point = ChampionData.point

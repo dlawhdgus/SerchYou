@@ -1,6 +1,7 @@
 const config = require('./config')
 const { Client, GatewayIntentBits } = require('discord.js')
 const EmbedViews = require('./embeds')
+const DBConnect = require('./db_connect')
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -12,6 +13,7 @@ const client = new Client({
 
 client.once('ready', () => {
     console.log('ready')
+    if(DBConnect.connectstring) console.log('DB Connected!!')
 })
 
 client.on('messageCreate', async msg => {

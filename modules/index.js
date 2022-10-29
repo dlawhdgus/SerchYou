@@ -1,5 +1,6 @@
 const config = require('../config.json')
 const axios = require('axios')
+const championDB = require('../models/champions/db')
 
 module.exports.GetUserData = async (username) => {
     try {
@@ -61,15 +62,10 @@ module.exports.GetUserChampionsLevelData = async (encrptedSummonerId, ChampID) =
     }
 }
 
-module.exports.ChampionsData = async () => {
-    const ChampionDataUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/data/ko_KR/champion.json`
-    const ChampionData = axios.get(ChampionDataUri)
-    return ChampionData
-}
-
 module.exports.UserDataTemplate = async (username) => {
     try {
         const Gamesusername = username.split(' ')[0]
+        
         const puuidResponse = await this.GetUserData(Gamesusername)
         const NormalMatchIds = await this.GetNormalMatchId(puuidResponse.puuid)
         const RankedMatchIds = await this.GetRankedMatchId(puuidResponse.puuid)
@@ -205,34 +201,29 @@ module.exports.UserChampionsLevel = async (username) => {
     try {
         const GameUsername = username.split(' ')[0]
         const championName = username.split(' ')[1]
+
         const UserData = await this.GetUserData(GameUsername)
+        const championData = await championDB.ChampionData(championName)
         const SummonerId = UserData.id
-        const ChampionData = await this.ChampionsData()
-        const championInfo = ChampionData.data.data
-        const ChampID = []
-        const ChampName = []
-        for (let i = 0; i < Object.keys(championInfo).length; i++) {
-            if (Object.values(Object.values(championInfo))[i].name === championName) {
-                ChampName[0] = Object.values(Object.values(championInfo))[i].id
-                ChampID[0] = Object.values(Object.values(championInfo))[i].key
-            }
-        }
-        const ChampionsLevelData = await this.GetUserChampionsLevelData(SummonerId, ChampID)
+        const ChampionsLevelData = await this.GetUserChampionsLevelData(SummonerId, championData.ChampionId)
+
+
         if (ChampionsLevelData) {
             const championDataALL = ChampionsLevelData.data
-            const championData = {
-                name: ChampName[0],
-                champKoreanName: championName,
+            const ChampionData = {
+                name: championData.KoName,
                 level: championDataALL.championLevel,
-                point: championDataALL.championPoints
+                point: championDataALL.championPoints,
+                ChampIconUri : championData.ChampionIconUri
             }
-            return championData
+            return ChampionData
         } else {
-            const championData = {
-                name: ChampName[0],
-                champKoreanName: championName
+            const ChampionData = {
+                name: championData.KoName,
+                champKoreanName: championName,
+                ChampIconUri : championData.ChampionIconUri
             }
-            return championData
+            return ChampionData
         }
     } catch (e) {
         throw e
