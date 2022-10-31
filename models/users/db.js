@@ -61,7 +61,6 @@ exports.TimeFilterUserData = async (username) => {
             const user = await UsersColl.findOne({username : username})
             return user
         } else {
-            console.log('b')
             return false
         }
     }
