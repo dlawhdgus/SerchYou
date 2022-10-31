@@ -1,5 +1,7 @@
 const config = require('../config.json')
 const axios = require('axios')
+const championDB = require('../models/champions/db')
+const userDB = require('../models/users/db')
 
 module.exports.GetUserData = async (username) => {
     try {
@@ -43,9 +45,13 @@ module.exports.GetRankedMatchId = async (puuid) => {
 
 module.exports.GetMatchData = async (MatchId, i) => {
     try {
-        const MatchDataUri = `https://asia.api.riotgames.com/lol/match/v5/matches/${MatchId[i]}?api_key=${config.API_CONNECT_KEY}`
-        const MatchDataResult = await axios.get(MatchDataUri)
-        return MatchDataResult.data.info
+        if(!MatchId[i]) {
+            return null
+        } else {
+            const MatchDataUri = `https://asia.api.riotgames.com/lol/match/v5/matches/${MatchId[i]}?api_key=${config.API_CONNECT_KEY}`
+            const MatchDataResult = await axios.get(MatchDataUri)
+            return MatchDataResult.data.info
+        }
     } catch (e) {
         throw e
     }
@@ -61,103 +67,106 @@ module.exports.GetUserChampionsLevelData = async (encrptedSummonerId, ChampID) =
     }
 }
 
-module.exports.ChampionsData = async () => {
-    const ChampionDataUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/data/ko_KR/champion.json`
-    const ChampionData = axios.get(ChampionDataUri)
-    return ChampionData
-}
-
 module.exports.UserDataTemplate = async (username) => {
     try {
         const Gamesusername = username.split(' ')[0]
-        const puuidResponse = await this.GetUserData(Gamesusername)
-        const NormalMatchIds = await this.GetNormalMatchId(puuidResponse.puuid)
-        const RankedMatchIds = await this.GetRankedMatchId(puuidResponse.puuid)
-
-        const MatchData = []
-        const RankMatchData = []
-
-        const Kda_float = []
-        const Kda = []
-        const KdaDiff = []
-
-        const Win_bool = []
-        const Win = []
-
-        const GameMode = []
-        const GameModeKorean = []
-
-        const EndDate = []
-        const EndTimeStamp = []
-
-        const ChampionName = []
-        const ChampionIconUri = []
-
-        const IconId = puuidResponse.profileIconId
-        const IconUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/profileicon/${IconId}.png`
-
-        for (let i = 0; i < 10; i++) {
-            MatchData[i] = await this.GetMatchData(NormalMatchIds, i)
-            RankMatchData[i] = await this.GetMatchData(RankedMatchIds, i)
-
-            if (MatchData[i].gameEndTimestamp > RankMatchData[i].gameEndTimestamp) {
-                GameMode[i] = MatchData[i].gameMode
-                if (GameMode[i] === 'CLASSIC') GameModeKorean[i] = '일반'
-                else if (GameMode[i] === 'URF') GameModeKorean[i] = '우르프'
-                else if (GameMode[i] === 'ARAM') GameModeKorean[i] = '칼바람'
-                else if (GameMode[i] === 'ULTBOOK') GameModeKorean[i] = '궁국기 주문서'
-                else if (GameMode[i] === 'TUTORIAL') GameModeKorean[i] = '튜토리얼'
-                else if (GameMode[i] === 'ONEFORALL') GameModeKorean[i] = '단일 챔피언'
-                else GameModeKorean[i] = '잘못된 맵'
-
-                for (let j = 0; j < 10; j++) {
-                    if (MatchData[i].participants[j].summonerName === puuidResponse.name) {
-                        Win_bool[i] = MatchData[i].participants[j].win
-                        Kda_float[i] = (MatchData[i].participants[j].kills + MatchData[i].participants[j].assists) / MatchData[i].participants[j].deaths
-                        ChampionName[i] = MatchData[i].participants[j].championName
-                    }
-                    if (Win_bool[i] === true) Win[i] = '승'
-                    else Win[i] = '패'
-                    Kda[i] = Number.parseFloat(Math.round(Kda_float[i] * 100) / 100).toFixed(2)
-                    KdaDiff[i] = Math.round(Kda_float[i] * 100) / 100
-                    EndTimeStamp[i] = MatchData[i].gameEndTimestamp
-                    EndDate[i] = new Date(EndTimeStamp[i])
-                    ChampionIconUri[i] = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/champion/${ChampionName[i]}.png`
-                }
-            } else {
-                GameMode[i] = RankMatchData[i].gameMode
-                if (GameMode[i] === 'CLASSIC') GameModeKorean[i] = '개인/2인 랭크'
-                else GameModeKorean[i] = '잘못된 맵'
-                for (let j = 0; j < 10; j++) {
-                    if (RankMatchData[i].participants[j].summonerName === puuidResponse.name) {
-                        Win_bool[i] = RankMatchData[i].participants[j].win
-                        Kda_float[i] = (RankMatchData[i].participants[j].kills + RankMatchData[i].participants[j].assists) / RankMatchData[i].participants[j].deaths
-                        ChampionName[i] = RankMatchData[i].participants[j].championName
-                    }
-                    if (Win_bool[i] === true) Win[i] = '승'
-                    else Win[i] = '패'
-                    Kda[i] = Number.parseFloat(Math.round(Kda_float[i] * 100) / 100).toFixed(2)
-                    KdaDiff[i] = Math.round(Kda_float[i] * 100) / 100
-                    EndTimeStamp[i] = RankMatchData[i].gameEndTimestamp
-                    EndDate[i] = new Date(EndTimeStamp[i])
-                    ChampionIconUri[i] = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/champion/${ChampionName[i]}.png`
-                }
+        const UserData = await userDB.TimeFilterUserData(Gamesusername)
+        if(UserData) {
+            const recentgame = UserData.RecentRecode
+            return recentgame
+        } else {
+            const puuidResponse = await this.GetUserData(Gamesusername)
+            const RankedMatchIds = await this.GetRankedMatchId(puuidResponse.puuid)
+            const NormalMatchIds = await this.GetNormalMatchId(puuidResponse.puuid)
+    
+            const InsertMatchId = await userDB.InsertUserMatchIds(Gamesusername, RankedMatchIds, NormalMatchIds)
+            const userdata = await userDB.ShowUserData(Gamesusername)
+    
+            const NormalMatchData = []
+            const RankedMatchData = []
+    
+            for(let i = 0; i<userdata.NormalMatchIds.length; i++) {
+                RankedMatchData[i] = await this.GetMatchData(userdata.RankMatchIds,i)
+                NormalMatchData[i] = await this.GetMatchData(userdata.NormalMatchIds,i)
             }
-
-            if (Kda[i] === 'Infinity') Kda[i] = 'Perfect'
+            
+            const InsertMatchData = await userDB.InsertUserMatchData(Gamesusername, RankedMatchData, NormalMatchData)
+            const user = await userDB.User(Gamesusername)
+            
+            const GameMode = []
+            const NormalMatch = []
+            const RankMatch = []
+    
+            const Win = []
+            const Kda_float = []
+            const KdaDiff = []
+            const Kda = []
+            const EndTime = []
+            const IconId = puuidResponse.profileIconId
+            const IconUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/profileicon/${IconId}.png`
+            
+            for(let i = 0; i< 10; i++) {
+                NormalMatch[i] = user.NormalData[i]
+                RankMatch[i] = user.RankData[i]
+                if(NormalMatch[i].gameEndTimestamp > RankMatch[i].gameEndTimestamp) {
+    
+                    GameMode[i] = user.NormalData[i].gameMode
+                    if (GameMode[i] === 'CLASSIC') GameMode[i] = '일반'
+                    else if (GameMode[i] === 'URF') GameMode[i] = '우르프'
+                    else if (GameMode[i] === 'ARAM') GameMode[i] = '칼바람'
+                    else if (GameMode[i] === 'ULTBOOK') GameMode[i] = '궁국기 주문서'
+                    else if (GameMode[i] === 'TUTORIAL') GameMode[i] = '튜토리얼'
+                    else if (GameMode[i] === 'ONEFORALL') GameMode[i] = '단일 챔피언'
+                    else GameMode[i] = '잘못된 맵'
+    
+                    for(let j = 0; j < 10; j++) {
+                        if(NormalMatch[i].participants[j].summonerName === puuidResponse.name) {
+                            if(NormalMatch[i].participants[j].win) Win[i] = '승'
+                            else Win[i] = '패'
+                            Kda_float[i] = (NormalMatch[i].participants[j].kills + NormalMatch[i].participants[j].assists) / NormalMatch[i].participants[j].deaths 
+                            Kda[i] = Number.parseFloat(Math.round(Kda_float[i] * 100) / 100).toFixed(2)
+                            KdaDiff[i] = Math.round(Kda_float[i] * 100) / 100
+                        }
+                    }
+    
+                    EndTime[i] = new Date(NormalMatch[i].gameEndTimestamp)
+    
+                } else {
+                    GameMode[i] = user.RankData[i].gameMode
+                    if (GameMode[i] === 'CLASSIC') GameMode[i] = '개인/2인 랭크'
+                    else GameMode[i] = '잘못된 맵'
+    
+                    for(let j = 0; j < 10; j++) {
+                        if(NormalMatch[i].participants[j].summonerName === puuidResponse.name) {
+                            if(NormalMatch[i].participants[j].win) Win[i] = '승'
+                            else Win[i] = '패'
+                            Kda_float[i] = (NormalMatch[i].participants[j].kills + NormalMatch[i].participants[j].assists) / NormalMatch[i].participants[j].deaths 
+                            Kda[i] = Number.parseFloat(Math.round(Kda_float[i] * 100) / 100).toFixed(2)
+                            KdaDiff[i] = Math.round(Kda_float[i] * 100) / 100
+                        }
+                    }
+    
+                    EndTime[i] = new Date(NormalMatch[i].gameEndTimestamp)
+                }
+                if (Kda[i] === 'Infinity') Kda[i] = 'Perfect'
+            }
+            const RecentUserRecode = {
+                name : puuidResponse.name,
+                Win : Win,
+                Kda : Kda,
+                GameMode : GameMode,
+                EndTime : EndTime,
+                userIcon : IconUri,
+                KdaDiff : KdaDiff
+            }
+            
+            const RecentGame = await userDB.InsertRecentRecode(Gamesusername, RecentUserRecode)
+            const recentgame = RecentGame.RecentRecode
+            return recentgame
         }
-        const user = {
-            username: puuidResponse.name,
-            Win: Win,
-            Kda: Kda,
-            GameModeKorean: GameModeKorean,
-            EndDate: EndDate,
-            IconUri: IconUri,
-            KdaDiff: KdaDiff
-        }
 
-        return user
     } catch (e) {
+        console.log(e)
         throw e
     }
 }
@@ -187,12 +196,12 @@ module.exports.DiffPlayers = async (player1Username, player2Username) => {
 
     const Players = {
         Player1: {
-            Player1Username: Player1Data.username,
+            Player1Username: Player1Data.name,
             Player1WinRate: Player1WinRate,
             Player1KdaRate: Player1KdaRate
         },
         Player2: {
-            Player2Username: Player2Data.username,
+            Player2Username: Player2Data.name,
             Player2WinRate: Player2WinRate,
             Player2KdaRate: Player2KdaRate
         }
@@ -205,34 +214,29 @@ module.exports.UserChampionsLevel = async (username) => {
     try {
         const GameUsername = username.split(' ')[0]
         const championName = username.split(' ')[1]
+
         const UserData = await this.GetUserData(GameUsername)
+        const championData = await championDB.ChampionData(championName)
         const SummonerId = UserData.id
-        const ChampionData = await this.ChampionsData()
-        const championInfo = ChampionData.data.data
-        const ChampID = []
-        const ChampName = []
-        for (let i = 0; i < Object.keys(championInfo).length; i++) {
-            if (Object.values(Object.values(championInfo))[i].name === championName) {
-                ChampName[0] = Object.values(Object.values(championInfo))[i].id
-                ChampID[0] = Object.values(Object.values(championInfo))[i].key
-            }
-        }
-        const ChampionsLevelData = await this.GetUserChampionsLevelData(SummonerId, ChampID)
+        const ChampionsLevelData = await this.GetUserChampionsLevelData(SummonerId, championData.ChampionId)
+
+
         if (ChampionsLevelData) {
             const championDataALL = ChampionsLevelData.data
-            const championData = {
-                name: ChampName[0],
-                champKoreanName: championName,
+            const ChampionData = {
+                name: championData.KoName,
                 level: championDataALL.championLevel,
-                point: championDataALL.championPoints
+                point: championDataALL.championPoints,
+                ChampIconUri: championData.ChampionIconUri
             }
-            return championData
+            return ChampionData
         } else {
-            const championData = {
-                name: ChampName[0],
-                champKoreanName: championName
+            const ChampionData = {
+                name: championData.KoName,
+                champKoreanName: championName,
+                ChampIconUri: championData.ChampionIconUri
             }
-            return championData
+            return ChampionData
         }
     } catch (e) {
         throw e

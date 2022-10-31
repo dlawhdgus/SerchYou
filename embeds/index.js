@@ -94,19 +94,19 @@ module.exports.UserProfile = async (username) => {
 module.exports.RecentGames = async (username) => {
     const User = await GetApiData.UserDataTemplate(username)
     const UserGames = new EmbedBuilder()
-        .setAuthor({ name: `${User.username}`, iconURL: `${User.IconUri}` })
+        .setAuthor({ name: `${User.name}`, iconURL: `${User.userIcon}` })
         .setTitle('승 / 패   KDA   게임모드   끝난시간')
         .setDescription(`
-            ${User.Win[0]} ${String(User.Kda[0])} ${User.GameModeKorean[0]} ${User.EndDate[0].toLocaleString()}
-            ${User.Win[1]} ${String(User.Kda[1])} ${User.GameModeKorean[1]} ${User.EndDate[1].toLocaleString()}
-            ${User.Win[2]} ${String(User.Kda[2])} ${User.GameModeKorean[2]} ${User.EndDate[2].toLocaleString()}
-            ${User.Win[3]} ${String(User.Kda[3])} ${User.GameModeKorean[3]} ${User.EndDate[3].toLocaleString()}
-            ${User.Win[4]} ${String(User.Kda[4])} ${User.GameModeKorean[4]} ${User.EndDate[4].toLocaleString()}
-            ${User.Win[5]} ${String(User.Kda[5])} ${User.GameModeKorean[5]} ${User.EndDate[5].toLocaleString()}
-            ${User.Win[6]} ${String(User.Kda[6])} ${User.GameModeKorean[6]} ${User.EndDate[6].toLocaleString()}
-            ${User.Win[7]} ${String(User.Kda[7])} ${User.GameModeKorean[7]} ${User.EndDate[7].toLocaleString()}
-            ${User.Win[8]} ${String(User.Kda[8])} ${User.GameModeKorean[8]} ${User.EndDate[8].toLocaleString()}
-            ${User.Win[9]} ${String(User.Kda[9])} ${User.GameModeKorean[9]} ${User.EndDate[9].toLocaleString()}
+            ${User.Win[0]} ${String(User.Kda[0])} ${User.GameMode[0]} ${User.EndTime[0].toLocaleString()}
+            ${User.Win[1]} ${String(User.Kda[1])} ${User.GameMode[1]} ${User.EndTime[1].toLocaleString()}
+            ${User.Win[2]} ${String(User.Kda[2])} ${User.GameMode[2]} ${User.EndTime[2].toLocaleString()}
+            ${User.Win[3]} ${String(User.Kda[3])} ${User.GameMode[3]} ${User.EndTime[3].toLocaleString()}
+            ${User.Win[4]} ${String(User.Kda[4])} ${User.GameMode[4]} ${User.EndTime[4].toLocaleString()}
+            ${User.Win[5]} ${String(User.Kda[5])} ${User.GameMode[5]} ${User.EndTime[5].toLocaleString()}
+            ${User.Win[6]} ${String(User.Kda[6])} ${User.GameMode[6]} ${User.EndTime[6].toLocaleString()}
+            ${User.Win[7]} ${String(User.Kda[7])} ${User.GameMode[7]} ${User.EndTime[7].toLocaleString()}
+            ${User.Win[8]} ${String(User.Kda[8])} ${User.GameMode[8]} ${User.EndTime[8].toLocaleString()}
+            ${User.Win[9]} ${String(User.Kda[9])} ${User.GameMode[9]} ${User.EndTime[9].toLocaleString()}
             `)
         .setColor(0xFF00FF)
     return UserGames
@@ -118,11 +118,11 @@ module.exports.ChampionsLevel = async (username) => {
 
     const ChampionData = await GetApiData.UserChampionsLevel(username)
     const puuidResponse = await GetApiData.GetUserData(summonerName)
-    const name = ChampionData.champKoreanName
+    const name = ChampionData.name
     const Gameusername = puuidResponse.name
-
-    const ChampionIconUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/champion/${ChampionData.name}.png`
+    const ChampionIconUri = ChampionData.ChampIconUri
     const UserIconUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/profileicon/${puuidResponse.profileIconId}.png`
+    
     if (ChampionData.level) {
         const level = ChampionData.level
         const point = ChampionData.point
