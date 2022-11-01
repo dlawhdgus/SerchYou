@@ -13,7 +13,7 @@ const client = new Client({
 
 client.once('ready', () => {
     console.log('ready')
-    if(DBConnect.connectstring) console.log('DB Connected!!')
+    if (DBConnect.connectstring) console.log('DB Connected!!')
 })
 
 client.on('messageCreate', async msg => {
@@ -25,17 +25,17 @@ client.on('messageCreate', async msg => {
             msg.channel.send({ embeds: [EmbedName] })
         }
 
-        if(CommandFilter) { 
+        if (CommandFilter) {
             const CommandContent = content.split(' ')
             const username = content.split('"')
 
-            if(msg.author.id === '1034353521061007402') {
+            if (msg.author.id === '1034353521061007402') {
                 return
             } else {
-                if(!(CommandContent[0] === '<@1034353521061007402>')) {
+                if (!(CommandContent[0] === '<@1034353521061007402>')) {
                     return
                 } else {
-                    if(String(CommandContent) === CommandFilter) {
+                    if (String(CommandContent) === CommandFilter) {
                         const HelpCommand = EmbedViews.helper()
                         EmbedSendTemplate(HelpCommand)
                     } else if (CommandContent[2] === '전적' || CommandContent[2] === 'wjswjr') {
@@ -46,10 +46,10 @@ client.on('messageCreate', async msg => {
                         msg.channel.send(`*계 산 중*`)
                         const PlayerDiffEmbed = await EmbedViews.DiffUsers(username)
                         EmbedSendTemplate(PlayerDiffEmbed)
-                    } else if(username[2]){
+                    } else if (username[2]) {
                         const champions = await EmbedViews.ChampionsLevel(username)
                         EmbedSendTemplate(champions)
-                    } else if(username[1]){
+                    } else if (username[1]) {
                         const UserProfile = await EmbedViews.UserProfile(username[1])
                         EmbedSendTemplate(UserProfile)
                     } else {
