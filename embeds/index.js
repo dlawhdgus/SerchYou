@@ -61,7 +61,7 @@ module.exports.UserProfile = async (username) => {
     const IconId = puuidResponse.profileIconId
     const IconUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/profileicon/${IconId}.png`
     const level = puuidResponse.summonerLevel
-    if (!((RankData.data[0].queueType) === 'RANKED_SOLO_5x5')) {
+    if (!RankData.data[0] || !((RankData.data[0].queueType) === 'RANKED_SOLO_5x5')) {
         const UserProfileEmbed = new EmbedBuilder()
             .setTitle(puuidResponse.name)
             .setThumbnail(IconUri)
