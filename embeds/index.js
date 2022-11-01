@@ -6,19 +6,28 @@ module.exports.helper = () => {
     const help = new EmbedBuilder()
         .setTitle('사용법')
         .setDescription(`
-        ${Discord.bold('1. !닉네임')}
+        ${Discord.bold('1. @SerchYou "닉네임"')}
         *사용자의 정보를 보여줍니다.*
-        ${Discord.bold('2. !닉네임 전적')}
+        ${Discord.bold('2. @SerchYou "닉네임" 전적')}
         *사용자의 최근 10판 전적을 보여줍니다.*
-        ${Discord.bold('3. !닉네임 vs 닉네임')}
+        ${Discord.bold('3. @SerchYou "닉네임" vs "닉네임"')}
         *두 사용자의 최근 10판의 승률과 Kda를 보여줍니다.*
-        ${Discord.bold('4. !닉네임 챔피언이름')}
+        ${Discord.bold('4. @SerchYou "닉네임" 챔피언이름')}
         *사용자에대한 챔피언의 숙련도를 보여줍니다.*
 
-        닉네임에 공백 X
+        *처음 명령어 호출시 시간이 조금 걸립니다.*
         `)
 
     return help
+}
+
+module.exports.WrongCommand = () => {
+    const NotFoundError = new EmbedBuilder()
+        .setTitle('Error')
+        .setDescription('잘못된 명령어입니다')
+        .setColor(0xFF0000)
+
+    return NotFoundError
 }
 
 module.exports.NotFoundError = () => {
@@ -40,10 +49,10 @@ module.exports.ServerError = () => {
 }
 
 module.exports.DiffUsers = async (username) => {
-    const player1Username = username.split(' ')[0]
-    const player2Username = username.split(' ')[2]
+    const player1Username = username[1]
+    const player2Username = username[3]
     const player = await GetApiData.DiffPlayers(player1Username, player2Username)
-
+    
     const PlayerDiffembed = new EmbedBuilder()
         .setTitle(`${player.Player1.Player1Username}      VS      ${player.Player2.Player2Username}`)
         .addFields([
@@ -111,37 +120,45 @@ module.exports.RecentGames = async (username) => {
 }
 
 module.exports.ChampionsLevel = async (username) => {
-    const summonertotalName = username.split('!')[0]
-    const summonerName = summonertotalName.split(' ')[0]
+    const summonerName = username[1]
 
     const ChampionData = await GetApiData.UserChampionsLevel(username)
     const puuidResponse = await GetApiData.GetUserData(summonerName)
-    const name = ChampionData.name
-    const Gameusername = puuidResponse.name
-    const ChampionIconUri = ChampionData.ChampIconUri
-    const UserIconUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/profileicon/${puuidResponse.profileIconId}.png`
-
-    if (ChampionData.level) {
-        const level = ChampionData.level
-        const point = ChampionData.point
-
+    if(!(ChampionData.level)) {
+        const name = ChampionData.name
         const ChampionsLevelEmbed = new EmbedBuilder()
-            .setAuthor({ name: Gameusername, iconURL: UserIconUri })
-            .setTitle(name)
-            .setThumbnail(ChampionIconUri)
-            .addFields(
-                { name: 'level', value: `${String(level)}렙` },
-                { name: 'point', value: `${String(point)}점` }
-            )
-
+            .setTitle('Error')
+            .setDescription(name)
+            .setColor(0xFF0000)
         return ChampionsLevelEmbed
     } else {
-        const ChampionsLevelEmbed = new EmbedBuilder()
-            .setAuthor({ name: Gameusername, iconURL: UserIconUri })
-            .setTitle(name)
-            .setThumbnail(ChampionIconUri)
-            .setDescription('챔피언 정보가 없습니다.')
-
-        return ChampionsLevelEmbed
+        const name = ChampionData.name
+        const Gameusername = puuidResponse.name
+        const ChampionIconUri = ChampionData.ChampIconUri
+        const UserIconUri = `http://ddragon.leagueoflegends.com/cdn/12.20.1/img/profileicon/${puuidResponse.profileIconId}.png`
+    
+        if (ChampionData.level) {
+            const level = ChampionData.level
+            const point = ChampionData.point
+    
+            const ChampionsLevelEmbed = new EmbedBuilder()
+                .setAuthor({ name: Gameusername, iconURL: UserIconUri })
+                .setTitle(name)
+                .setThumbnail(ChampionIconUri)
+                .addFields(
+                    { name: 'level', value: `${String(level)}렙` },
+                    { name: 'point', value: `${String(point)}점` }
+                )
+    
+            return ChampionsLevelEmbed
+        } else {
+            const ChampionsLevelEmbed = new EmbedBuilder()
+                .setAuthor({ name: Gameusername, iconURL: UserIconUri })
+                .setTitle(name)
+                .setThumbnail(ChampionIconUri)
+                .setDescription('챔피언 정보가 없습니다.')
+    
+            return ChampionsLevelEmbed
+        }
     }
 }

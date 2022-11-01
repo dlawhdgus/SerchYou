@@ -69,18 +69,17 @@ module.exports.GetUserChampionsLevelData = async (encrptedSummonerId, ChampID) =
 
 module.exports.UserDataTemplate = async (username) => {
     try {
-        const Gamesusername = username.split(' ')[0]
-        const UserData = await userDB.TimeFilterUserData(Gamesusername)
+        const UserData = await userDB.TimeFilterUserData(username)
         if(UserData) {
             const recentgame = UserData.RecentRecode
             return recentgame
         } else {
-            const puuidResponse = await this.GetUserData(Gamesusername)
+            const puuidResponse = await this.GetUserData(username)
             const RankedMatchIds = await this.GetRankedMatchId(puuidResponse.puuid)
             const NormalMatchIds = await this.GetNormalMatchId(puuidResponse.puuid)
     
-            const InsertMatchId = await userDB.InsertUserMatchIds(Gamesusername, RankedMatchIds, NormalMatchIds)
-            const userdata = await userDB.ShowUserData(Gamesusername)
+            const InsertMatchId = await userDB.InsertUserMatchIds(username, RankedMatchIds, NormalMatchIds)
+            const userdata = await userDB.ShowUserData(username)
     
             const NormalMatchData = []
             const RankedMatchData = []
@@ -90,8 +89,8 @@ module.exports.UserDataTemplate = async (username) => {
                 NormalMatchData[i] = await this.GetMatchData(userdata.NormalMatchIds,i)
             }
             
-            const InsertMatchData = await userDB.InsertUserMatchData(Gamesusername, RankedMatchData, NormalMatchData)
-            const user = await userDB.User(Gamesusername)
+            const InsertMatchData = await userDB.InsertUserMatchData(username, RankedMatchData, NormalMatchData)
+            const user = await userDB.User(username)
             
             const GameMode = []
             const NormalMatch = []
@@ -160,7 +159,7 @@ module.exports.UserDataTemplate = async (username) => {
                 KdaDiff : KdaDiff
             }
             
-            const RecentGame = await userDB.InsertRecentRecode(Gamesusername, RecentUserRecode)
+            const RecentGame = await userDB.InsertRecentRecode(username, RecentUserRecode)
             const recentgame = RecentGame.RecentRecode
             return recentgame
         }
@@ -184,7 +183,13 @@ module.exports.DiffPlayers = async (player1Username, player2Username) => {
     for (let i = 0; i < 10; i++) {
         if (Player1Data.Win[i] === '승') Player1Wincount++
         if (Player2Data.Win[i] === '승') Player2Wincount++
+        if(Player1Data.KdaDiff[i] === Infinity){
+            i++
+        }
         Player1Kdacount += Player1Data.KdaDiff[i]
+        if(Player2Data.KdaDiff[i] === Infinity){
+            i++
+        }
         Player2Kdacount += Player2Data.KdaDiff[i]
     }
 
@@ -212,33 +217,40 @@ module.exports.DiffPlayers = async (player1Username, player2Username) => {
 
 module.exports.UserChampionsLevel = async (username) => {
     try {
-        const GameUsername = username.split(' ')[0]
-        const championName = username.split(' ')[1]
+        const GameUsername = username[1]
+        const championName = username[2].split(' ')[1]
 
         const UserData = await this.GetUserData(GameUsername)
         const championData = await championDB.ChampionData(championName)
-        const SummonerId = UserData.id
-        const ChampionsLevelData = await this.GetUserChampionsLevelData(SummonerId, championData.ChampionId)
-
-
-        if (ChampionsLevelData) {
-            const championDataALL = ChampionsLevelData.data
+        if(!championData) {
             const ChampionData = {
-                name: championData.KoName,
-                level: championDataALL.championLevel,
-                point: championDataALL.championPoints,
-                ChampIconUri: championData.ChampionIconUri
+                name: '챔피언 정보가 없습니다.'
             }
             return ChampionData
         } else {
-            const ChampionData = {
-                name: championData.KoName,
-                champKoreanName: championName,
-                ChampIconUri: championData.ChampionIconUri
+            const SummonerId = UserData.id
+            const ChampionsLevelData = await this.GetUserChampionsLevelData(SummonerId, championData.ChampionId)
+    
+            if (ChampionsLevelData) {
+                const championDataALL = ChampionsLevelData.data
+                const ChampionData = {
+                    name: championData.KoName,
+                    level: championDataALL.championLevel,
+                    point: championDataALL.championPoints,
+                    ChampIconUri: championData.ChampionIconUri
+                }
+                return ChampionData
+            } else {
+                const ChampionData = {
+                    name: championData.KoName,
+                    champKoreanName: championName,
+                    ChampIconUri: championData.ChampionIconUri
+                }
+                return ChampionData
             }
-            return ChampionData
         }
     } catch (e) {
+        console.log(e)
         throw e
     }
 }   
