@@ -61,6 +61,7 @@ client.on('messageCreate', async msg => {
         }
         else return
     } catch (e) {
+        console.log(e)
         const NotFoundError = EmbedViews.NotFoundError()
         const ServerError = EmbedViews.ServerError()
         if (e.response) {
