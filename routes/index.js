@@ -211,39 +211,141 @@ module.exports.DiffPlayers = async (player1Username, player2Username) => {
 
     let Player1Kdacount = 0
     let Player2Kdacount = 0
-    for (let i = 0; i < 10; i++) {
-        if (Player1Data.RecentRecode.Win[i] === '승') Player1Wincount++
-        if (Player2Data.RecentRecode.Win[i] === '승') Player2Wincount++
-        if (Player1Data.RecentRecode.KdaDiff[i] === Infinity) {
-            i++
+
+    if(Player1Data.RecentRecode && !Player2Data.RecentRecode){
+        for (let i = 0; i < 10; i++) {
+            if (Player1Data.RecentRecode.Win[i] === '승') Player1Wincount++
+            if (Player2Data.Win[i] === '승') Player2Wincount++
+            if (Player1Data.RecentRecode.KdaDiff[i] === Infinity) {
+                i++
+            }
+            Player1Kdacount += Player1Data.RecentRecode.KdaDiff[i]
+            if (Player2Data.KdaDiff[i] === Infinity) {
+                i++
+            }
+            Player2Kdacount += Player2Data.KdaDiff[i]
         }
-        Player1Kdacount += Player1Data.RecentRecode.KdaDiff[i]
-        if (Player2Data.RecentRecode.KdaDiff[i] === Infinity) {
-            i++
+    
+        const Player1WinRate = Player1Wincount / 10 * 100
+        const Player2WinRate = Player2Wincount / 10 * 100
+    
+        const Player1KdaRate = Number.parseFloat(Player1Kdacount / 10).toFixed(2)
+        const Player2KdaRate = Number.parseFloat(Player2Kdacount / 10).toFixed(2)
+    
+        const Players = {
+            Player1: {
+                Player1Username: Player1Data.RecentRecode.name,
+                Player1WinRate: Player1WinRate,
+                Player1KdaRate: Player1KdaRate
+            },
+            Player2: {
+                Player2Username: Player2Data.name,
+                Player2WinRate: Player2WinRate,
+                Player2KdaRate: Player2KdaRate
+            }
         }
-        Player2Kdacount += Player2Data.RecentRecode.KdaDiff[i]
+        return Players
+    } else if(Player2Data.RecentRecode && !Player1Data.RecentRecode){
+        for (let i = 0; i < 10; i++) {
+            if (Player1Data.Win[i] === '승') Player1Wincount++
+            if (Player2Data.RecentRecode.Win[i] === '승') Player2Wincount++
+            if (Player1Data.KdaDiff[i] === Infinity) {
+                i++
+            }
+            Player1Kdacount += Player1Data.KdaDiff[i]
+            if (Player2Data.RecentRecode.KdaDiff[i] === Infinity) {
+                i++
+            }
+            Player2Kdacount += Player2Data.RecentRecode.KdaDiff[i]
+        }
+    
+        const Player1WinRate = Player1Wincount / 10 * 100
+        const Player2WinRate = Player2Wincount / 10 * 100
+    
+        const Player1KdaRate = Number.parseFloat(Player1Kdacount / 10).toFixed(2)
+        const Player2KdaRate = Number.parseFloat(Player2Kdacount / 10).toFixed(2)
+    
+        const Players = {
+            Player1: {
+                Player1Username: Player1Data.name,
+                Player1WinRate: Player1WinRate,
+                Player1KdaRate: Player1KdaRate
+            },
+            Player2: {
+                Player2Username: Player2Data.RecentRecode.name,
+                Player2WinRate: Player2WinRate,
+                Player2KdaRate: Player2KdaRate
+            }
+        }
+        return Players
+    } else if(!Player2Data.RecentRecode && !Player1Data.RecentRecode){
+        for (let i = 0; i < 10; i++) {
+            if (Player1Data.Win[i] === '승') Player1Wincount++
+            if (Player2Data.Win[i] === '승') Player2Wincount++
+            if (Player1Data.KdaDiff[i] === Infinity) {
+                i++
+            }
+            Player1Kdacount += Player1Data.KdaDiff[i]
+            if (Player2Data.KdaDiff[i] === Infinity) {
+                i++
+            }
+            Player2Kdacount += Player2Data.KdaDiff[i]
+        }
+    
+        const Player1WinRate = Player1Wincount / 10 * 100
+        const Player2WinRate = Player2Wincount / 10 * 100
+    
+        const Player1KdaRate = Number.parseFloat(Player1Kdacount / 10).toFixed(2)
+        const Player2KdaRate = Number.parseFloat(Player2Kdacount / 10).toFixed(2)
+    
+        const Players = {
+            Player1: {
+                Player1Username: Player1Data.name,
+                Player1WinRate: Player1WinRate,
+                Player1KdaRate: Player1KdaRate
+            },
+            Player2: {
+                Player2Username: Player2Data.name,
+                Player2WinRate: Player2WinRate,
+                Player2KdaRate: Player2KdaRate
+            }
+        }
+        return Players
+    } else {
+        for (let i = 0; i < 10; i++) {
+            if (Player1Data.RecentRecode.Win[i] === '승') Player1Wincount++
+            if (Player2Data.RecentRecode.Win[i] === '승') Player2Wincount++
+            if (Player1Data.RecentRecode.KdaDiff[i] === Infinity) {
+                i++
+            }
+            Player1Kdacount += Player1Data.RecentRecode.KdaDiff[i]
+            if (Player2Data.RecentRecode.KdaDiff[i] === Infinity) {
+                i++
+            }
+            Player2Kdacount += Player2Data.RecentRecode.KdaDiff[i]
+        }
+    
+        const Player1WinRate = Player1Wincount / 10 * 100
+        const Player2WinRate = Player2Wincount / 10 * 100
+    
+        const Player1KdaRate = Number.parseFloat(Player1Kdacount / 10).toFixed(2)
+        const Player2KdaRate = Number.parseFloat(Player2Kdacount / 10).toFixed(2)
+    
+        const Players = {
+            Player1: {
+                Player1Username: Player1Data.RecentRecode.name,
+                Player1WinRate: Player1WinRate,
+                Player1KdaRate: Player1KdaRate
+            },
+            Player2: {
+                Player2Username: Player2Data.RecentRecode.name,
+                Player2WinRate: Player2WinRate,
+                Player2KdaRate: Player2KdaRate
+            }
+        }
+        return Players 
     }
 
-    const Player1WinRate = Player1Wincount / 10 * 100
-    const Player2WinRate = Player2Wincount / 10 * 100
-
-    const Player1KdaRate = Number.parseFloat(Player1Kdacount / 10).toFixed(2)
-    const Player2KdaRate = Number.parseFloat(Player2Kdacount / 10).toFixed(2)
-
-    const Players = {
-        Player1: {
-            Player1Username: Player1Data.RecentRecode.name,
-            Player1WinRate: Player1WinRate,
-            Player1KdaRate: Player1KdaRate
-        },
-        Player2: {
-            Player2Username: Player2Data.RecentRecode.name,
-            Player2WinRate: Player2WinRate,
-            Player2KdaRate: Player2KdaRate
-        }
-    }
-
-    return Players
 }
 
 module.exports.UserChampionsLevel = async (username) => {
