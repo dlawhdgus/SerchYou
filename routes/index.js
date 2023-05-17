@@ -73,14 +73,14 @@ module.exports.GetUserChampionsLevelData = async (encrptedSummonerId, ChampID) =
 module.exports.UserDataTemplate = async (username) => {
     try {
         const userdata = await userDB_Read.ReadData(username)
-
         if (!userdata) {
             const userdatas = await this.UserAllDataTemplate(username, userdata)
             return userdatas
         } else {
             const TimeFilter = userdata.createAt
             if (TimeFilter.setMinutes(TimeFilter.getMinutes() + 10) > date.getTime()) {
-                return userdata
+                const recentgame = userdata.RecentRecode
+                return recentgame
             } else {
                 const userdatas = await this.UserAllDataTemplate(username, userdata)
                 return userdatas
@@ -117,7 +117,6 @@ module.exports.UserAllDataTemplate = async (username, userdata) => {
 
     const NormalMatchData = []
     const RankedMatchData = []
-
     for (let i = 0; i < userdata.NormalMatchIds.length; i++) {
         RankedMatchData[i] = await this.GetMatchData(userdata.RankMatchIds, i)
         NormalMatchData[i] = await this.GetMatchData(userdata.NormalMatchIds, i)
