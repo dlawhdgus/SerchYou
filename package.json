@@ -1,8 +1,11 @@
 {
   "name": "lol-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "leage of legends의 api를 사용하여 만든 discoad 봇",
   "main": "app.js",
+  "repository": {
+    "url": "https://github.com/dlawhdgus/lol-discord-bot.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
